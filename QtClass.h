@@ -19,10 +19,10 @@ protected:
 	void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
 	QImage *obrazok;
 	QColor color;
-	QPoint Point[15];
+	QVector<QPoint> Point;
 	QPoint beginPoint;
 	int n = 0;
-	bool zapnutieKreslenia;
+	bool zapnutieKreslenia=0;
 public:
 	QtClass(QWidget *parent = Q_NULLPTR); 
 	~QtClass();

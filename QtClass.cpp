@@ -8,6 +8,7 @@ QtClass::QtClass(QWidget *parent)
 	vyber_farby();
 }
 
+
 QtClass::~QtClass(){
 }
 
@@ -34,9 +35,8 @@ void QtClass::mousePressEvent(QMouseEvent *event) {
 	QPainter painter(obrazok);
 	painter.setPen(QPen(color, 3));
 
-	if (event->button() == Qt::LeftButton && n<15) {
-
-		Point[n] = event->pos();
+	if (event->button() == Qt::LeftButton && zapnutieKreslenia==0) {
+		Point.push_back(event->pos());
 		painter.drawPoint(event->pos());
 		n++;
 	}
@@ -44,12 +44,30 @@ void QtClass::mousePressEvent(QMouseEvent *event) {
 	update();
 }
 
+void QtClass::mouseMoveEvent(QMouseEvent *event) {
+	if (event->button() == Qt::RightButton && n >= 3) {
+		posun(event->pos());
+	}
+}
+
+void QtClass::mouseReleaseEvent(QMouseEvent *event) {
+	if (event->button() == Qt::RightButton && n >= 3) {
+		posun(event->pos());
+	}
+}
+
+void QtClass::wheelEvent(QWheelEvent *event) {
+	if (n >= 3) {
+		skalovanie(event->angleDelta());
+	}
+}
+
 void QtClass::kresli_body() {
 	QPainter painter(obrazok);
 	painter.setPen(QPen(color, 3));
 
-	for (int i = 0; i < n; i++) 
-			painter.drawPoint(Point[i].x(), Point[i].y());
+	for (int i = 0; i < n; i++)
+		painter.drawPoint(Point[i].x(), Point[i].y());
 	
 	update();
 }
@@ -69,6 +87,7 @@ void QtClass::kresli_spoje(){
 				painter.drawLine(Point[i - 1].x(), Point[i - 1].y(), Point[0].x(), Point[0].y());
 				}
 		}
+		zapnutieKreslenia = 1;
 	}
 	update();
 }
@@ -84,17 +103,20 @@ void QtClass::kresli_ciaruPreklopenie() {
 
 void QtClass::vymaz(){
 	n = 0;
+	Point.clear();
+	zapnutieKreslenia = 0;
 }
 
 void QtClass::vymaz_platno() {
 	newImage(450,400);
+	zapnutieKreslenia = 0;
 }
 
 void QtClass::rotaciaPSHR(double alfa) {
 	double x1, y1,rozdielx,rozdiely;
 
 	alfa = alfa*(M_PI/180);
-	for (int i = 1; i <= n; i++) {
+	for (int i = 1; i < n; i++) {
 		rozdielx = Point[i].x() - Point[0].x();
 		rozdiely = Point[i].y() - Point[0].y();
 		x1 = rozdielx *qCos(alfa) + rozdiely *qSin(alfa) + Point[0].x();
@@ -112,7 +134,7 @@ void QtClass::rotaciaSHR(double alfa) {
 	double x1, y1,rozdielx,rozdiely;
 
 	alfa = alfa * (M_PI / 180);
-	for (int i = 1; i <= n; i++) {
+	for (int i = 1; i < n; i++) {
 		rozdielx = Point[i].x() - Point[0].x();
 		rozdiely = Point[i].y() - Point[0].y();
 		x1 = rozdielx*qCos(alfa) - rozdiely*qSin(alfa) + Point[0].x();
@@ -120,7 +142,7 @@ void QtClass::rotaciaSHR(double alfa) {
 		Point[i].setX(x1);
 		Point[i].setY(y1);
 	}
-	//vymaz_platno();
+	vymaz_platno();
 	kresli_body();
 	kresli_spoje();
 
@@ -150,12 +172,11 @@ void QtClass::posun(QPoint &endPoint) {
 void QtClass::preklopenie() {
 	double y;
 
-	vymaz_platno();
 	for (int i = 1; i < n; i++) {
 		y= Point[0].y() - Point[i].y() + Point[0].y();
 		Point[i].setY(y);
 	}
-
+	//vymaz_platno();
 	kresli_ciaruPreklopenie();
 	kresli_body();
 	kresli_spoje();
@@ -253,24 +274,6 @@ void QtClass::skalovanie(QPoint &endPoint) {
 	kresli_body();
 	kresli_spoje();
 
-}
-
-void QtClass::mouseMoveEvent(QMouseEvent *event){
-	if (event->button() == Qt::RightButton && n >= 3 ){
-		posun(event->pos());
-	}
-}
-
-void QtClass::mouseReleaseEvent(QMouseEvent *event){
-	if (event->button() == Qt::RightButton && n>=3) {
-		posun(event->pos());
-	}
-}
-
-void QtClass::wheelEvent(QWheelEvent *event){
-	if (n >= 3) {
-		skalovanie(event->angleDelta());
-	}
 }
 
 void QtClass::SaveImg(QString menoSuboru)
